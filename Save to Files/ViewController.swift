@@ -41,17 +41,29 @@ class ViewController: UIViewController {
         dateFormatter.dateFormat = "yyyy-MM-dd-HH-mm-ss"
         let content = dateFormatter.string(from: date)
         if let documentsDirectoryUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-            let fileUrl = documentsDirectoryUrl.appendingPathComponent(content + ".txt")
+            let stampedFileUrl = documentsDirectoryUrl.appendingPathComponent(content + ".txt")
             do {
-                try content.write(to: fileUrl, atomically: false, encoding: .utf8)
-                let alert = UIAlertController(title: "Date & Time", message: content, preferredStyle: UIAlertControllerStyle.alert)
-                alert.addAction(UIAlertAction(title: "Close", style: UIAlertActionStyle.default, handler: nil))
-                self.present(alert, animated: true, completion: nil)
+                try content.write(to: stampedFileUrl, atomically: false, encoding: .utf8)
             } catch {
                 let alert = UIAlertController(title: "Date & Time", message: "Error writing content", preferredStyle: UIAlertControllerStyle.alert)
                 alert.addAction(UIAlertAction(title: "Close", style: UIAlertActionStyle.default, handler: nil))
                 self.present(alert, animated: true, completion: nil)
+                return
             }
+            
+            let unstampedFileUrl = documentsDirectoryUrl.appendingPathComponent("data.txt")
+            do {
+                try content.write(to: unstampedFileUrl, atomically: false, encoding: .utf8)
+            } catch {
+                let alert = UIAlertController(title: "Date & Time", message: "Error writing content", preferredStyle: UIAlertControllerStyle.alert)
+                alert.addAction(UIAlertAction(title: "Close", style: UIAlertActionStyle.default, handler: nil))
+                self.present(alert, animated: true, completion: nil)
+                return
+            }
+            
+            let alert = UIAlertController(title: "Date & Time", message: content, preferredStyle: UIAlertControllerStyle.alert)
+            alert.addAction(UIAlertAction(title: "Close", style: UIAlertActionStyle.default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
         }
     }
 }
