@@ -2,8 +2,10 @@ import UIKit
 
 class ViewController: UIViewController {
     @IBOutlet weak var creationDateLabel: UILabel!
+    @IBOutlet weak var currentDateLabel: UILabel!
     @IBOutlet weak var expirationDateLabel: UILabel!
-
+    @IBOutlet weak var recordCountLabel: UILabel!
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidLoad()
         if let profileUrl = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision") {
@@ -22,6 +24,15 @@ class ViewController: UIViewController {
                         let expirationDate = String(profileText[Range(expirationDateMatch.range(at: 1), in: profileText)!])
                         expirationDateLabel.text = "Expiration Date: " + expirationDate
                     }
+                    
+                    Timer.scheduledTimer(
+                        timeInterval: 1,
+                        target: self,
+                        selector: #selector(self.updateAll),
+                        userInfo: nil,
+                        repeats: true
+                    )
+                    updateCurrentDate()
                 } else {
                     let alert = UIAlertController(title: "Date & Time", message: "Error parsing expiration", preferredStyle: UIAlertControllerStyle.alert)
                     alert.addAction(UIAlertAction(title: "Close", style: UIAlertActionStyle.default, handler: nil))
@@ -31,6 +42,33 @@ class ViewController: UIViewController {
                 let alert = UIAlertController(title: "Date & Time", message: "Error reading expiration", preferredStyle: UIAlertControllerStyle.alert)
                 alert.addAction(UIAlertAction(title: "Close", style: UIAlertActionStyle.default, handler: nil))
                 self.present(alert, animated: true, completion: nil)
+            }
+        }
+    }
+    
+    @objc func updateAll() {
+        updateCurrentDate()
+        updateRecordCount()
+    }
+    
+    func updateCurrentDate() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        formatter.timeZone = TimeZone(abbreviation: "GMT")
+        currentDateLabel.text = "Current Date: " + formatter.string(from: Date())
+    }
+    
+    func updateRecordCount() {
+        if let documentsDirectoryUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            do {
+                let urls = try FileManager.default.contentsOfDirectory(
+                    at: documentsDirectoryUrl,
+                    includingPropertiesForKeys: [],
+                    options: .skipsSubdirectoryDescendants
+                )
+                recordCountLabel.text = "Records found: " + String(urls.count)
+            } catch {
+                recordCountLabel.text = "Error enumerating record count"
             }
         }
     }
@@ -64,6 +102,7 @@ class ViewController: UIViewController {
             let alert = UIAlertController(title: "Date & Time", message: content, preferredStyle: UIAlertControllerStyle.alert)
             alert.addAction(UIAlertAction(title: "Close", style: UIAlertActionStyle.default, handler: nil))
             self.present(alert, animated: true, completion: nil)
+            updateRecordCount()
         }
     }
 }
